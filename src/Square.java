@@ -2,7 +2,7 @@ public class Square {
 
     public Board.Color color;
     public int row, col;
-    public Piece piece;
+    private Piece piece;
 
     public Square(Board.Color color, int row, int col){
         this.color = color;
@@ -24,8 +24,8 @@ public class Square {
         this.piece = piece;
     }
 
-    public void print(){
-        System.out.print(piece == null? "|   ": "| " + piece.colorChar() +" ");
+    public String printSquare(){
+       return piece == null? "|   ": "| " + piece.colorChar() +" ";
     }
 
     @Override

@@ -6,19 +6,19 @@ public class Board {
         HashMap<Square, List<Direction>> allMoves = new HashMap<>();
         boolean mustJump = false;
 
-        for(int row = 0; row < grid.length; row++){
-            for(int col = 0; col < grid[0].length; col++){
+        for (int row = 0; row < grid.length; row++) {
+            for (int col = 0; col < grid[0].length; col++) {
                 Square square = grid[row][col];
 
-                if(square.hasPiece() && square.getPiece().color == currentPlayer.color){
+                if (square.hasPiece() && square.getPiece().color == currentPlayer.color) {
 
                     List<Direction> possibleMoves = getAllJumpsAroundMe(currentPlayer.color, square);
 
                     //  If we can jump from this spot, we must.
-                    if(!possibleMoves.isEmpty() || mustJump){
+                    if (!possibleMoves.isEmpty() || mustJump) {
 
                         //  If we just found out that we have to jump, we may have added some invalid moves now so we clear.
-                        if(!mustJump)
+                        if (!mustJump)
                             allMoves.clear();
 
                         mustJump = true;
@@ -28,8 +28,7 @@ public class Board {
                         possibleMoves.addAll(getAllMovesAroundMe(square));
 
 
-
-                    if(!possibleMoves.isEmpty())
+                    if (!possibleMoves.isEmpty())
                         allMoves.put(square, possibleMoves);
                 }
             }
@@ -37,6 +36,7 @@ public class Board {
 
         return allMoves;
     }
+
 
     public static enum Color {
         red, black, white
@@ -46,7 +46,7 @@ public class Board {
         topLeft, topRight, bottomLeft, bottomRight
     }
 
-    public static enum GameState{
+    public static enum GameState {
         playing, error, jumpAgain, pendingMessage
     }
 
@@ -70,7 +70,7 @@ public class Board {
 
     public Board() {
         grid = new Square[8][8];
-        recentlyKilled = new boolean[grid.length][grid[0].length];
+        initRecentlyKilled();
 
         init();
     }
@@ -119,9 +119,10 @@ public class Board {
     public void checkBoard(Player currentPlayer) {
         jumpSrcDest = new HashMap<>();
 
+        initRecentlyKilled();
+
         for (int row = 0; row < grid.length; row++) {
             for (int col = 0; col < grid[0].length; col++) {
-                recentlyKilled[row][col] = false;
 
                 Square currentSquare = grid[row][col];
 
@@ -135,7 +136,7 @@ public class Board {
             }
         }
 
-        if (!jumpSrcDest.isEmpty()) {
+        if (!jumpSrcDest.isEmpty() && !currentPlayer.isComputer) {
             StringBuilder out = new StringBuilder();
 
             Object[] srcs = jumpSrcDest.keySet().toArray();
@@ -169,15 +170,15 @@ public class Board {
         }
     }
 
-    private List<Direction> getAllMovesAroundMe(Square square){
+    private List<Direction> getAllMovesAroundMe(Square square) {
         List<Direction> possibleMoves = new ArrayList<>();
 
 
         int[] offset;
         Square dest;
-        for(Direction direction: Direction.values()) {
+        for (Direction direction : Direction.values()) {
             offset = offsetFromDirection(square.row, square.col, direction);
-            if(!isInBounds(offset[0], offset[1]))
+            if (!isInBounds(offset[0], offset[1]))
                 continue;
 
             dest = grid[offset[0]][offset[1]];
@@ -191,13 +192,13 @@ public class Board {
 
     private List<Direction> getAllJumpsAroundMe(Color myColor, Square currentSquare) {
         List<Direction> result = new ArrayList<>();
-        if(!currentSquare.hasPiece())
+        if (!currentSquare.hasPiece())
             return result;
 
-        if(!currentSquare.getPiece().isKing){
+        if (!currentSquare.getPiece().isKing) {
 
             //  A non-king red can only jump downwards.
-            if(myColor == Color.red){
+            if (myColor == Color.red) {
                 //  Bottom right
                 if (hasJumpableEnemy(myColor, currentSquare.row, currentSquare.col, Direction.bottomRight))
                     result.add(Direction.bottomRight);
@@ -207,7 +208,7 @@ public class Board {
                     result.add(Direction.bottomLeft);
             }
             //  A non-king black can only jump upwards.
-            else{
+            else {
                 //  Top left
                 if (hasJumpableEnemy(myColor, currentSquare.row, currentSquare.col, Direction.topLeft))
                     result.add(Direction.topLeft);
@@ -220,7 +221,7 @@ public class Board {
             return result;
         }
 
-        for(Direction direction: Direction.values()){
+        for (Direction direction : Direction.values()) {
             if (hasJumpableEnemy(myColor, currentSquare.row, currentSquare.col, direction))
                 result.add(direction);
         }
@@ -273,6 +274,11 @@ public class Board {
         return row >= 0 && row < grid.length && col >= 0 && col < grid[0].length;
     }
 
+    private boolean isInBounds(Square square, Direction direction) {
+        int[] offset = offsetFromDirection(square.row, square.col, direction);
+        return isInBounds(offset[0], offset[1]);
+    }
+
     public GameState makeMove(Player currentPlayer, String src, String dest) {
         if (!validInput(src) || !validInput(dest)) {
             showError("Invalid input.",
@@ -295,17 +301,23 @@ public class Board {
         return doMove(currentPlayer, startSquare, endSquare);
     }
 
-    public GameState makeMove(Player currentPlayer, Square startSquare, Direction direction){
-        return doMove(currentPlayer, startSquare,  getSquareAt(startSquare, direction));
+    public GameState makeMove(Player currentPlayer, Square startSquare, Direction direction) {
+        return doMove(currentPlayer, startSquare, getSquareAt(startSquare, direction));
     }
 
-    public Undo makeAIMove(Player currentPlayer, Square startSquare, Direction direction){
-        doMove(currentPlayer, startSquare, getSquareAt(startSquare, direction));
+    public GameState makeAIMove(Player currentPlayer, Square startSquare, Direction direction) {
+        return doMove(currentPlayer, startSquare, getSquareAt(startSquare, direction), true);
+    }
 
+    public Undo getUndo(){
         return undo;
     }
 
     private GameState doMove(Player currentPlayer, Square startSquare, Square endSquare) {
+        return doMove(currentPlayer, startSquare, endSquare, false);
+    }
+
+    private GameState doMove(Player currentPlayer, Square startSquare, Square endSquare, boolean aiMove) {
 
         //  If the destination has a piece, this is a jump.
         if (endSquare.hasPiece()) {
@@ -313,7 +325,7 @@ public class Board {
 
             Piece victim = endSquare.getPiece();
             endSquare.setPiece(null);
-            recentlyKilled[endSquare.row][endSquare.col] = true;
+            setRecentlyKilledPos(endSquare.row, endSquare.col);
 
             Direction direction = getDirection(startSquare, endSquare);
             int[] offset = offsetFromDirection(endSquare.row, endSquare.col, direction);
@@ -324,8 +336,8 @@ public class Board {
 
             //  King me
             boolean becameKing = false;
-            if(currentPlayer.color == Color.red && endSquare.row == grid.length - 1
-                || currentPlayer.color == Color.black && endSquare.row == 0){
+            if (currentPlayer.color == Color.red && endSquare.row == grid.length - 1
+                    || currentPlayer.color == Color.black && endSquare.row == 0) {
 
                 becameKing = !endSquare.getPiece().isKing;
                 endSquare.getPiece().isKing = true;
@@ -334,21 +346,20 @@ public class Board {
             undo = new Undo(currentPlayer, startSquare, endSquare, becameKing, victim);
 
             List<Direction> anotherJumpDirections = getAllJumpsAroundMe(currentPlayer.color, endSquare);
-            if(!anotherJumpDirections.isEmpty()){
-                System.out.println("Player " + currentPlayer.color +" can jump again!");
+            if (!anotherJumpDirections.isEmpty()) {
                 return GameState.jumpAgain;
-            }else
+            } else
                 return GameState.playing;
 
-        }else {
+        } else {
 
             endSquare.setPiece(startSquare.getPiece());
             startSquare.setPiece(null);
 
             //  King me
             boolean becameKing = false;
-            if(currentPlayer.color == Color.red && endSquare.row == grid.length - 1
-                    || currentPlayer.color == Color.black && endSquare.row == 0){
+            if (currentPlayer.color == Color.red && endSquare.row == grid.length - 1
+                    || currentPlayer.color == Color.black && endSquare.row == 0) {
 
                 becameKing = !endSquare.getPiece().isKing;
                 endSquare.getPiece().isKing = true;
@@ -360,30 +371,30 @@ public class Board {
         }
     }
 
-    public String undoMove(Undo undo){
-        if(undo == null)
+    public String undoMove(Undo undo) {
+        if (undo == null)
             return "No undo available";
 
         Square source = undo.src;
         Square dest = undo.dest;
 
         source.setPiece(dest.getPiece());
-        if(undo.becameKing){
+        if (undo.becameKing) {
             source.getPiece().isKing = false;
         }
 
         dest.setPiece(null);
 
-        if(undo.jumpedPiece != null) {
-            Direction direction  = getDirection(source, dest);
+        if (undo.jumpedPiece != null) {
+            Direction direction = getDirection(source, dest);
             int[] offset = offsetFromDirection(source.row, source.col, direction);
             grid[offset[0]][offset[1]].setPiece(undo.jumpedPiece);
 
             undo.currentPlayer.score--;
-            recentlyKilled = new boolean[grid.length][grid[0].length];
+            initRecentlyKilled();
         }
 
-        return "From " + rowColToMove(dest.row, dest.col) +" back to " + rowColToMove(source.row, source.col);
+        return "From " + rowColToMove(dest.row, dest.col) + " back to " + rowColToMove(source.row, source.col);
     }
 
     private String isLegalMove(Player currentPlayer, String src, String dest) {
@@ -405,6 +416,8 @@ public class Board {
             return "A piece cannot move more than 1 row up or down at a time.";
         } else if (!legalDirection(startSquare, endSquare)) {
             return "That piece cannot go in that direction.";
+        } else if (endSquare.hasPiece() && startSquare.getPiece().color == endSquare.getPiece().color) {
+            return "You can't jump your own piece.";
         } else if (!jumpSrcDest.isEmpty()) {
             if (!jumpSrcDest.containsKey(startSquare))
                 return "That piece is not among the pieces that must jump.";
@@ -416,7 +429,7 @@ public class Board {
     }
 
     private boolean legalDirection(Square startSquare, Square endSquare) {
-        if(startSquare.getPiece() == null)
+        if (startSquare.getPiece() == null)
             return false;
 
         Piece piece = startSquare.getPiece();
@@ -469,55 +482,186 @@ public class Board {
     }
 
     /**
-     *  The evaluation is impacted by the following:
-     *      - Increases for each piece the current player has on the board
+     * The evaluation is impacted by the following:
+     * - Increases for each piece the current player has on the board
      *
      * @param currentPlayer - The player we currently care about
      * @return - The evaluation result
      */
-    public int evaluate(Player currentPlayer){
+    public int evaluate(Player currentPlayer) {
+        //  Reds and blacks on the board in this state, normal worth is 1, kings are worth 5
         int reds = 0, blacks = 0;
-        for(int row = 0; row < grid.length; row++){
-            for(int col = 0; col < grid[0].length; col++){
 
-                if(grid[row][col].hasPiece()){
-                    if(grid[row][col].getPiece().color == Color.red)
-                        reds++;
-                    else
-                        blacks++;
+        //  This counts the progress that the non-king pieces are to becoming king. Progress starts from the middle.
+        //  Red needs to get to the bottom, black needs to get to the top
+        int redProgress = 0, blackProgress = 0;
+
+        Square square;
+        for (int row = 0; row < grid.length; row++) {
+            for (int col = 0; col < grid[0].length; col++) {
+                square = grid[row][col];
+
+                if (square.hasPiece()) {
+                    if (square.getPiece().color == Color.red) {
+                        if (square.getPiece().isKing) {
+                            reds += 5;
+                        } else {
+
+                            //  We can only count this as progress if we can move this piece forward, otherwise,
+                            //  this position is useless
+                            if (isProgress(square.getPiece().color, square)) {
+                                redProgress +=  Math.ceil(Math.pow(2, grid.length - row) / 10.0);
+                            }
+
+                            reds++;
+                        }
+                    } else {
+                        if (square.getPiece().isKing) {
+                            blacks += 5;
+                        } else {
+
+                            //  We can only count this as progress if we can move this piece forward, otherwise,
+                            //  this position is useless
+                            if (isProgress(square.getPiece().color, square)) {
+                                blackProgress += Math.ceil(Math.pow(2, row + 1) / 10.0);
+                            }
+
+                            blacks++;
+                        }
+                    }
                 }
             }
         }
 
-        return currentPlayer.color == Color.red? reds - blacks: blacks - reds;
+        int winLoseAdjustment = 0;
+        if (currentPlayer.color == Color.red) {
+            if (reds == 0)
+                winLoseAdjustment = -1000;
+            else if (blacks == 0)
+                winLoseAdjustment = 1000;
+        } else {
+            if (blacks == 0)
+                winLoseAdjustment = -1000;
+            else if (reds == 0)
+                winLoseAdjustment = 1000;
+        }
+
+        int pieceAdvantage = currentPlayer.color == Color.red ? reds - blacks : blacks - reds;
+        int progressTowardsKing = currentPlayer.color == Color.red ? redProgress : blackProgress;
+
+        return pieceAdvantage * 2 + progressTowardsKing * 2 + winLoseAdjustment;
+    }
+
+    private boolean isProgress(Color myColor, Square square) {
+        int row = square.row;
+        int col = square.col;
+
+        List<Direction> jumpsAroundMe = getAllJumpsAroundMe(myColor, square);
+        //  We can assume that this isn't a king
+        if (myColor == Color.red) {
+
+            //  I have more progress if I can jump a piece from here.
+            if (jumpsAroundMe.contains(Direction.bottomLeft) || jumpsAroundMe.contains(Direction.bottomRight))
+                return true;
+
+                //  I have more progress if I can move at least left or right and not get captured.
+            else
+                return !isDangerousMove(myColor, square, Direction.bottomLeft) ||
+                        !isDangerousMove(myColor, square, Direction.bottomRight);
+
+        } else {
+
+            //  I have more progress if I can jump a piece from here.
+            if (jumpsAroundMe.contains(Direction.topLeft) || jumpsAroundMe.contains(Direction.topRight))
+                return true;
+
+                //  I have more progress if I can move at least left or right and not get captured.
+            else
+                return !isDangerousMove(myColor, square, Direction.topLeft) ||
+                        !isDangerousMove(myColor, square, Direction.topRight);
+        }
+
+    }
+
+    private boolean isDangerousMove(Color myColor, Square srcSquare, Direction destDirection) {
+        int[] offset = offsetFromDirection(srcSquare.row, srcSquare.col, destDirection);
+        int newRow = offset[0], newCol = offset[1];
+
+        if (!isInBounds(newRow, newCol))
+            return true;
+
+        Square destSquare = grid[newRow][newCol];
+        if (destSquare.hasPiece())
+            return true;
+
+
+        Direction srcDirection = getDirection(destSquare, srcSquare);
+
+
+        //  We check each diagonal to see if there is a surrounding threat in this new position.
+        //  (excluding the direction we just came from)
+
+        int tempRow, tempCol;
+        for (Direction direction : Direction.values()) {
+            if (direction == srcDirection)
+                continue;
+
+            int[] tempOffset = offsetFromDirection(newRow, newCol, direction);
+            tempRow = tempOffset[0];
+            tempCol = tempOffset[1];
+            if (!isInBounds(tempRow, tempCol))
+                continue;
+            Piece contender = grid[tempRow][tempCol].getPiece();
+            if (contender == null || contender.color == myColor)
+                continue;
+
+            destSquare.setPiece(srcSquare.getPiece());
+            srcSquare.setPiece(null);
+            //  Uses the perspective of this enemy piece to see if we will be jumped in this new spot.
+            boolean canJumpMe = hasJumpableEnemy(contender.color, tempRow, tempCol, getDirection(grid[tempRow][tempCol], destSquare));
+            srcSquare.setPiece(destSquare.getPiece());
+            destSquare.setPiece(null);
+
+            if (canJumpMe) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void print() {
+        System.out.print(toString());
+    }
 
-        System.out.println("    A   B   C   D   E   F   G   H ");
-        System.out.println("  ---------------------------------");
+    @Override
+    public String toString() {
+        StringBuilder boardOut = new StringBuilder();
+        boardOut.append("    A   B   C   D   E   F   G   H \n");
+        boardOut.append("  ---------------------------------\n");
 
         Square current;
         for (int row = 0; row < grid.length; row++) {
-            System.out.print((row + 1) + " ");
+            boardOut.append((row + 1));
+            boardOut.append(" ");
             for (int col = 0; col < grid[0].length; col++) {
                 current = grid[row][col];
 
-                if (recentlyKilled[row][col])
-                    System.out.print("| x ");
+                if (current.hasPiece())
+                    boardOut.append(current.printSquare());
+                else if (recentlyKilled[row][col])
+                    boardOut.append("| x ");
                 else
-                    current.print();
-/*                if(current.color == Color.black)
-                    System.out.print("| b ");
-                else
-                    System.out.print("| w ");*/
+                    boardOut.append(current.printSquare());
 
                 if (col == grid[0].length - 1)
-                    System.out.print("|");
+                    boardOut.append("|");
             }
-            System.out.println();
-            System.out.println("  ---------------------------------");
+            boardOut.append("\n");
+            boardOut.append("  ---------------------------------\n");
         }
+
+        return boardOut.toString();
     }
 
     private void showError(String title, String reason) {
@@ -535,14 +679,37 @@ public class Board {
         return grid[row][col];
     }
 
-    public Square getSquareAt(Square source, Direction direction){
+    public Square getSquareAt(Square source, Direction direction) {
         int[] offset = offsetFromDirection(source.row, source.col, direction);
-        if(isInBounds(offset[0], offset[1]))
+        if (isInBounds(offset[0], offset[1]))
             return grid[offset[0]][offset[1]];
         else {
             System.out.println("---- Offset position was out of bounds ----");
             return source;
         }
+    }
+
+    public void initRecentlyKilled(){
+        recentlyKilled = new boolean[grid.length][grid[0].length];
+    }
+
+    public int[] getRecentlyKilledPos(){
+        for(int row = 0; row < recentlyKilled.length; row++){
+            for (int col = 0; col < recentlyKilled[0].length; col++){
+                if(recentlyKilled[row][col])
+                    return new int[]{row, col};
+            }
+        }
+
+        return new int[]{-1, -1};
+    }
+
+    public void setRecentlyKilledPos(int row, int col) {
+        if(!isInBounds(row, col))
+            return;
+
+        initRecentlyKilled();
+        recentlyKilled[row][col] = true;
     }
 
     public static int letterToNumber(char letter) {
@@ -558,18 +725,18 @@ public class Board {
     }
 
 
-    public class Undo{
+    public class Undo {
 
         Player currentPlayer;
         Square src, dest;
         boolean becameKing = false;
         Piece jumpedPiece;
 
-        public Undo(Player currentPlayer, Square src, Square dest, boolean becameKing){
+        public Undo(Player currentPlayer, Square src, Square dest, boolean becameKing) {
             this(currentPlayer, src, dest, becameKing, null);
         }
 
-        public Undo(Player currentPlayer, Square src, Square dest, boolean becameKing, Piece jumpedPiece){
+        public Undo(Player currentPlayer, Square src, Square dest, boolean becameKing, Piece jumpedPiece) {
             this.currentPlayer = currentPlayer;
             this.src = src;
             this.dest = dest;
@@ -577,4 +744,9 @@ public class Board {
             this.jumpedPiece = jumpedPiece;
         }
     }
+
+/*    @Override
+    public String toString(){
+        return "grid";
+    }*/
 }

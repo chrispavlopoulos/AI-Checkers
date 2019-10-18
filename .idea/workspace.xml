@@ -1,7 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a17305d0-275e-42be-ba92-8e00f51ec176" name="Default Changelist" comment="" />
+    <list default="true" id="a17305d0-275e-42be-ba92-8e00f51ec176" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Checkers/Agent$AlphaBetaNode.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Checkers/Agent.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Checkers/Agent.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Checkers/Board$Undo.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Checkers/Board$Undo.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Checkers/Board.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Checkers/Board.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Checkers/Checkers.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Checkers/Checkers.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Checkers/Move.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Checkers/Move.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Checkers/Square.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Checkers/Square.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Agent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Agent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Board.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Checkers.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Checkers.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Move.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Move.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Square.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Square.java" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -11,6 +26,20 @@
   <component name="CoverageViewManager">
     <option name="myElementSize" value="171" />
   </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand />
+    <select />
+  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -18,8 +47,13 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1S456OcwNsulWLP06yaV9H3nH3o" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
   </component>
@@ -62,24 +96,23 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1570809851675</updated>
-      <workItem from="1570809855534" duration="46547000" />
+      <workItem from="1570809855534" duration="102133000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <condition expression="offset[0] &lt; 0 || offset[0] &gt; grid.length - 1 || offset[1] &lt; 0 || offset[1] &gt; grid[0].length - 1" language="JAVA" />
-          <url>file://$PROJECT_DIR$/src/Board.java</url>
-          <line>319</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Checkers$Main.ic" NAME="Main Coverage Results" MODIFIED="1571114349650" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />

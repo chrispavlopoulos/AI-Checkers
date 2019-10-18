@@ -13,11 +13,11 @@ public class Checkers {
 
 
     public Checkers(){
-        this(new Player(Board.Color.black, true), new Player(Board.Color.red, true));
+        this(new Agent(Board.Color.black), new Agent(Board.Color.red));
     }
 
     public Checkers(Player player1){
-        this(player1, new Player(player1.color == Board.Color.red? Board.Color.black: Board.Color.red, true));
+        this(player1, new Agent(player1.color == Board.Color.red? Board.Color.black: Board.Color.red));
     }
 
     public Checkers(Player player1, Player player2){
@@ -56,15 +56,31 @@ public class Checkers {
             currentPlayer = moves % 2 == 0? player1: player2;
 
             if(currentPlayer.isComputer) {
-                Move move = Agent.evaluate(currentPlayer, player1 == currentPlayer ? player2 : player1, board);
                 board.print();
+                //int[] recentlyKilled = board.getRecentlyKilledPos();
+                Move move = ((Agent) currentPlayer).evaluate( (player1 == currentPlayer ? player2 : player1), board);
+                if(move == null) {
+                    checkWin(currentPlayer == player1? player2: player1);
+                    break;
+                }
+
                 board.checkBoard(currentPlayer);
-                showDelayedMessage("Thinking");
+
+                //board.setRecentlyKilledPos(recentlyKilled[0], recentlyKilled[1]);
+
+                //showDelayedMessage("Thinking");
                 System.out.println();
+
+                Square destSquare = board.getSquareAt(move.source, move.direction);
+                boolean madeJump = destSquare.hasPiece();
+
                 gameState = board.makeMove(currentPlayer, move.source, move.direction);
 
                 board.print();
-                System.out.println("Player " + Board.colorString(currentPlayer.color) + " moved " + move.source + " to " + board.getSquareAt(move.source, move.direction));
+                if(madeJump)
+                    System.out.println("Player " + Board.colorString(currentPlayer.color) + " jumped the piece at " + destSquare + " from " + move.source);
+                else
+                    System.out.println("Player " + Board.colorString(currentPlayer.color) + " moved " + move.source + " to " + destSquare);
 
 
                 if (player1.isComputer && player2.isComputer) {
@@ -82,9 +98,14 @@ public class Checkers {
                 }
 
 
-                if(gameState != Board.GameState.jumpAgain)
-                    moves++;
+                if(gameState == Board.GameState.jumpAgain){
+                    System.out.println("Player " + currentPlayer.color +" can jump again!");
 
+                    continue;
+                }
+
+
+                moves++;
                 aiMoved = true;
 
                 continue;
@@ -121,19 +142,28 @@ public class Checkers {
             else
                 gameState = board.makeMove(currentPlayer, firstIn, secondIn);
 
-            if(gameState == Board.GameState.error || gameState == Board.GameState.jumpAgain) {
+            if(gameState == Board.GameState.error) {
                 System.out.print("--- Press enter to continue --- ");
                 input.nextLine();
 
                 continue;
-            }else{
-                showDelayedMessage("Moving");
+            }else if(gameState == Board.GameState.jumpAgain) {
+                System.out.println("Player " + currentPlayer.color +" can jump again!");
+                System.out.print("--- Press enter to continue --- ");
+                input.nextLine();
+
+                continue;
+            }else {
+                //showDelayedMessage("Moving");
             }
 
             System.out.println();
 
             moves++;
         }
+
+
+        input.close();
     }
 
     private void showDelayedMessage(String message){
@@ -151,7 +181,7 @@ public class Checkers {
     }
 
     private boolean checkWin(Player currentPlayer){
-        if(currentPlayer.score != Player.maxScore)
+        if(currentPlayer.score != Player.maxScore || !board.getAllPossibleMoves(currentPlayer == player1? player2: player1).isEmpty())
             return false;
 
 
