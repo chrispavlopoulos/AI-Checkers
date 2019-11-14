@@ -2,6 +2,9 @@ import java.util.*;
 
 public class Board {
 
+    Square doubleJumper = null;
+
+
     public HashMap<Square, List<Direction>> getAllPossibleMoves(Player currentPlayer) {
         HashMap<Square, List<Direction>> allMoves = new HashMap<>();
         boolean mustJump = false;
@@ -9,6 +12,9 @@ public class Board {
         for (int row = 0; row < grid.length; row++) {
             for (int col = 0; col < grid[0].length; col++) {
                 Square square = grid[row][col];
+                if(doubleJumper != null && square != doubleJumper)
+                    continue;
+
 
                 if (square.hasPiece() && square.getPiece().color == currentPlayer.color) {
 
@@ -318,6 +324,7 @@ public class Board {
     }
 
     private GameState doMove(Player currentPlayer, Square startSquare, Square endSquare, boolean aiMove) {
+        doubleJumper = null;
 
         //  If the destination has a piece, this is a jump.
         if (endSquare.hasPiece()) {
@@ -347,6 +354,7 @@ public class Board {
 
             List<Direction> anotherJumpDirections = getAllJumpsAroundMe(currentPlayer.color, endSquare);
             if (!anotherJumpDirections.isEmpty()) {
+                doubleJumper = endSquare;
                 return GameState.jumpAgain;
             } else
                 return GameState.playing;
@@ -496,12 +504,29 @@ public class Board {
         //  Red needs to get to the bottom, black needs to get to the top
         int redProgress = 0, blackProgress = 0;
 
+        int redDanger = 0, blackDanger = 0;
+
+
         Square square;
         for (int row = 0; row < grid.length; row++) {
             for (int col = 0; col < grid[0].length; col++) {
                 square = grid[row][col];
 
                 if (square.hasPiece()) {
+                    double progress = square.getPiece().color == Color.black
+                            ? Math.ceil(Math.pow(2, grid.length - row) / 10.0)
+                            : Math.ceil(Math.pow(2, row + 1) / 10.0);
+
+                    //  We don't count the status of a piece that can be jumped, we actually penalize that
+                    if(square.getPiece().color == currentPlayer.color && isInDanger(currentPlayer.color, square)) {
+                        if(square.getPiece().color == Color.red)
+                            redDanger += square.getPiece().isKing? 20: 10;
+                        else
+                            blackDanger += square.getPiece().isKing? 20: 10;
+
+                        continue;
+                    }
+
                     if (square.getPiece().color == Color.red) {
                         if (square.getPiece().isKing) {
                             reds += 5;
@@ -510,11 +535,13 @@ public class Board {
                             //  We can only count this as progress if we can move this piece forward, otherwise,
                             //  this position is useless
                             if (isProgress(square.getPiece().color, square)) {
-                                redProgress +=  Math.ceil(Math.pow(2, grid.length - row) / 10.0);
+                                redProgress += progress;
                             }
 
                             reds++;
                         }
+
+
                     } else {
                         if (square.getPiece().isKing) {
                             blacks += 5;
@@ -523,7 +550,7 @@ public class Board {
                             //  We can only count this as progress if we can move this piece forward, otherwise,
                             //  this position is useless
                             if (isProgress(square.getPiece().color, square)) {
-                                blackProgress += Math.ceil(Math.pow(2, row + 1) / 10.0);
+                                blackProgress += progress;
                             }
 
                             blacks++;
@@ -548,8 +575,9 @@ public class Board {
 
         int pieceAdvantage = currentPlayer.color == Color.red ? reds - blacks : blacks - reds;
         int progressTowardsKing = currentPlayer.color == Color.red ? redProgress : blackProgress;
+        int dangerLevel = currentPlayer.color == Color.red ? redDanger : blackDanger;
 
-        return pieceAdvantage * 2 + progressTowardsKing * 2 + winLoseAdjustment;
+        return pieceAdvantage * 2 + progressTowardsKing * 2 - dangerLevel * 2 + winLoseAdjustment;
     }
 
     private boolean isProgress(Color myColor, Square square) {
@@ -621,6 +649,32 @@ public class Board {
             boolean canJumpMe = hasJumpableEnemy(contender.color, tempRow, tempCol, getDirection(grid[tempRow][tempCol], destSquare));
             srcSquare.setPiece(destSquare.getPiece());
             destSquare.setPiece(null);
+
+            if (canJumpMe) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isInDanger(Color myColor, Square square){
+
+        int tempRow, tempCol;
+        for (Direction direction : Direction.values()) {
+
+            int[] tempOffset = offsetFromDirection(square.row, square.col, direction);
+            tempRow = tempOffset[0];
+            tempCol = tempOffset[1];
+            if (!isInBounds(tempRow, tempCol))
+                continue;
+            Piece contender = grid[tempRow][tempCol].getPiece();
+            if (contender == null || contender.color == myColor)
+                continue;
+
+
+            //  Uses the perspective of this enemy piece to see if we will be jumped in this new spot.
+            boolean canJumpMe = hasJumpableEnemy(contender.color, tempRow, tempCol, getDirection(grid[tempRow][tempCol], square));
 
             if (canJumpMe) {
                 return true;

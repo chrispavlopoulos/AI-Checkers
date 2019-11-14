@@ -1,4 +1,3 @@
-import javafx.util.Pair;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -12,6 +11,26 @@ public class Agent extends Player{
     Move[] lastTwoMoves; // lastTwoMoves[0] is the oldest move of the two
     int repeatedMoves;
     boolean needsRepeatFix;
+
+    private static class Pair<T, K>{
+
+        T key;
+        K value;
+
+        public Pair(T key, K value){
+            this.key = key;
+            this.value = value;
+        }
+
+        public T getKey() {
+            return key;
+        }
+
+        public K getValue() {
+            return value;
+        }
+    }
+
 
     public Agent(Board.Color color){
         super(color, true);
@@ -42,7 +61,7 @@ public class Agent extends Player{
             lastTwoMoves[1] = bestMove;
         }
 
-        System.out.println("Ran " + iterations +" iterations");
+        //System.out.println("Ran " + iterations +" iterations");
         return bestMove;
     }
 
@@ -76,25 +95,11 @@ public class Agent extends Player{
                     Board.GameState gameState = board.makeAIMove(player, key, direction);
                     Board.Undo undo = board.getUndo();
 
-                    /*if(iterations == 1)
-                        board.print();*/
-                    /*if(shouldPrint) {
-                        board.print();
-                        try {
-                            System.out.println("Exploring Max . . .");
-                            System.out.println();
-                            Thread.sleep(sleepTime);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }*/
-
-                    //if(depth == 3)
-                        //printPost = true;
 
                     int score;
                     if(gameState == Board.GameState.jumpAgain) {
-                        //System.out.println("Player " + player.color.toString() + " can jump again");
+
+                        //  If they can jump again, repeat the alpha beta search on this player
                         score = minMax(player, board, true, depth, alpha, beta).getKey();
                     }else
                         score = minMax(enemy, board, false, depth - 1, alpha, beta).getKey();
@@ -126,9 +131,6 @@ public class Agent extends Player{
                         }
                     }
 
-                    /*board.print();
-                    System.out.println("Undone last move " + undoText);
-                    System.out.println();*/
                 }
             }
 
@@ -153,7 +155,7 @@ public class Agent extends Player{
 
                     int score;
                     if(gameState == Board.GameState.jumpAgain) {
-                        //System.out.println("Player " +player.color.toString() + " can jump again");
+                        //  If they can jump again, repeat the alpha beta search on this player
                         score = minMax(player, board, false, depth, alpha, beta).getKey();
                     }else
                         score = minMax(this, board, true, depth - 1, alpha, beta).getKey();
@@ -179,9 +181,6 @@ public class Agent extends Player{
                         }
                     }
 
-                    /*board.print();
-                    System.out.println("Undone last move " + undoText);
-                    System.out.println();*/
                 }
             }
 
