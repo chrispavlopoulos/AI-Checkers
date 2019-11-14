@@ -16,9 +16,11 @@ Here's step-by-step instructions to use the program:
 4. Then enter `java Main` to start playing Checkers against the computer!
 
 ## Playing The Game
+For rules, please reference the [English Draughts rules for Checkers.](https://en.wikipedia.org/wiki/English_draughts)
+
 The game works as follows:
 
-- Specify who's who. You can let two computers play against each other (I included a random factor in the move it plays next so it should get heated)! Black goes first by Checkers' official rules.
+- Specify who's who. You can let two computers play against each other (I included a random factor in the move it plays next so it should get heated)! Black always goes first.
 - In order to move, you must first provide a start coordinate (i.e. 'A6'), then press enter. Now give the coordinate of the space you wish to move to (i.e. 'B5'). If you make an invalid move the console will let you know where you went wrong, so you can try again.
 - When you are next to an enemy that you can jump, you must take the jump. In order to do so: select the piece by supplying the start coordinate, then enter the coordinate of the piece you wish to jump (NOT THE SQUARE YOUR PIECE IS GOING TO END UP IN). The console will inform you if you can make a second jump afterwards.
 - The game ends when one player takes every piece of the other.
