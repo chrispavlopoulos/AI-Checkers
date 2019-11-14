@@ -1,6 +1,0 @@
-6. Compare the effect of increasing search depth and improving the evaluation function.
-
-
-	When I kept a very low search depth (2 or 3) the computer would make naive moves as it would not realize that it was setting itself up for failure in the next coming moves. When I had the search depth set to a higher number like 15, it would take a few seconds to a minute for the computer to make its move which was not very user friendly. As game went on, this issue became worse so I decided to lower it to a happy medium like depth 6, allowing both players to at least go 3 times. However, a good depth wasn't enough to have a smart AI.
-
-	When my evaluation function just took in lost/gained pieces. The AI would often make weird moves like keeping their king in the same spot the whole game or just not going for jumps. I instead decided to include heuristics in my evaluation function such as: How close is each of my pieces to becoming a king? Can this piece even move forward? If it does move forward, will it be captured the next turn? Things like this greatly improved the intelligence of my AI. Both the depth and evaluation function made my computer feel more human in it's move stradegies.
